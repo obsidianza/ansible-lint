@@ -1,0 +1,75 @@
+---
+name: Stage Release
+
+env:
+  LC_ALL: "C.UTF-8" # prevent ERROR: Ansible could not initialize the preferred locale: unsupported locale setting
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'ansible-lint version.'
+        required: true
+        default: ''
+      confirm:
+        description: 'Are you sure? Set this to yes.'
+        required: true
+        default: 'no'
+
+jobs:
+  stage:
+    if: endsWith(github.repository, '/ascender-ledger')
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: write
+    steps:
+      - name: Verify inputs
+        run: |
+          set -e
+
+          if [[ ${{ github.event.inputs.confirm }} != "yes" ]]; then
+            >&2 echo "Confirm must be 'yes'"
+            exit 1
+          fi
+
+          if [[ ${{ github.event.inputs.version }} == "" ]]; then
+            >&2 echo "Set version to continue."
+            exit 1
+          fi
+
+          exit 0
+
+      - name: Install python ${{ env.py_version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ env.py_version }}
+
+      - name: Checkout ansible-lint
+        uses: actions/checkout@v2
+        with:
+          path: ansible-lint
+          ref: main
+
+      - name: Get python version from Makefile
+        run: echo py_version=`make PYTHON_VERSION` >> $GITHUB_ENV
+
+      - name: Install playbook dependencies
+        run: |
+          python3 -m pip install docker==6.1.3
+          python3 -m pip install docker-compose
+
+      - name: Log in to GHCR
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build ansible-lint
+        working-directory: ansible-lint
+        run: |
+          docker-compose build
+
+      - name: Push ansible-lint
+        working-directory: ansible-lint
+        run: |
+          docker image push ghcr.io/${{ github.repository }}/ansible-lint:${{ github.event.inputs.version }}
+          docker image push ghcr.io/${{ github.repository }}/ansible-lint:latest
