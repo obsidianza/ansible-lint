@@ -57,7 +57,7 @@ jobs:
       - name: Build ansible-lint
         working-directory: ansible-lint
         run: |
-          podman build ./Dockerfile
+          podman build .
 
       - name: Push ansible-lint
         working-directory: ansible-lint
