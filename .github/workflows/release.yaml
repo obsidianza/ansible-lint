@@ -7,14 +7,10 @@ env:
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: "ansible-lint version."
-        required: true
-        default: ""
       confirm:
         description: "Are you sure? Set this to yes."
         required: true
-        default: "no"
+        default: "yes"
 
 jobs:
   stage:
@@ -32,12 +28,6 @@ jobs:
             >&2 echo "Confirm must be 'yes'"
             exit 1
           fi
-
-          if [[ ${{ github.event.inputs.version }} == "" ]]; then
-            >&2 echo "Set version to continue."
-            exit 1
-          fi
-
           exit 0
 
       - name: Install python ${{ env.py_version }}
@@ -56,8 +46,8 @@ jobs:
 
       - name: Install playbook dependencies
         run: |
-          apt-get install -y python3-docker
-          python3 -m pip install docker-compose
+          bash -c "$(curl -fsSL https://raw.githubusercontent.com/BryanDollery/remove-snap/main/remove-snap.sh)"
+          apt-get install -y podman
 
       - name: Log in to GHCR
         run: |
@@ -66,7 +56,7 @@ jobs:
       - name: Build ansible-lint
         working-directory: ansible-lint
         run: |
-          docker-compose build
+          podman build ./Dockerfile
 
       - name: Push ansible-lint
         working-directory: ansible-lint
