@@ -8,17 +8,17 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'ansible-lint version.'
+        description: "ansible-lint version."
         required: true
-        default: ''
+        default: ""
       confirm:
-        description: 'Are you sure? Set this to yes.'
+        description: "Are you sure? Set this to yes."
         required: true
-        default: 'no'
+        default: "no"
 
 jobs:
   stage:
-    if: endsWith(github.repository, '/ascender-ledger')
+    if: endsWith(github.repository, '/ansible-lint')
     runs-on: ubuntu-latest
     permissions:
       packages: write
