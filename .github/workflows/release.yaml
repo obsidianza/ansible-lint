@@ -62,5 +62,5 @@ jobs:
       - name: Push ansible-lint
         working-directory: ansible-lint
         run: |
-          docker image push ghcr.io/${{ github.repository }}/ansible-lint:${{ github.event.inputs.version }}
-          docker image push ghcr.io/${{ github.repository }}/ansible-lint:latest
+          # docker image push ghcr.io/${{ github.repository }}:${{ github.event.inputs.version }}
+          docker image push ghcr.io/${{ github.repository }}:latest
